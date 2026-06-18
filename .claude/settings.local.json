@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(winget --version)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent)",
+      "PowerShell(Get-Process msiexec -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='msiexec.exe'\")",
+      "PowerShell(Stop-Process -Id 16520, 14388 -Force -ErrorAction SilentlyContinue)",
+      "Bash(npm -v)"
+    ]
+  }
+}

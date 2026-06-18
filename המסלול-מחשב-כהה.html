@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>המסלול — סימולטור בחירת מה ללמוד בעתיד (כהה)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap');
+:root{
+  --bg:#0a0c11; --ink:#f4f6fb; --muted:rgba(255,255,255,.66); --line:rgba(255,255,255,.14);
+  --accent:#ff6a3d; --accent-press:#e9551f; --card:rgba(255,255,255,.06);
+  --trk:#4a4c55; --glow:rgba(255,106,61,.55);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Assistant','Heebo','Segoe UI',Arial,sans-serif;
+  color:var(--ink); min-height:100vh; line-height:1.5; background:var(--bg); overflow-x:hidden;
+  display:flex; flex-direction:column;
+}
+#bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:
+  radial-gradient(60% 60% at 80% 90%, #f97316, transparent 58%),
+  radial-gradient(55% 55% at 20% 16%, #06b6d4, transparent 62%),
+  radial-gradient(70% 70% at 58% 52%, #164e63, transparent 72%),
+  #05070b}
+#shaderbg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#bg::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(6,8,12,.45),rgba(6,8,12,.74))}
+.orb{position:absolute;border-radius:50%;filter:blur(46px);will-change:transform}
+.orb.o1{width:44vmax;height:44vmax;left:-12vmax;top:-10vmax;opacity:.4;background:radial-gradient(circle at 35% 35%,#ffc6a3,#ff7a45 72%);animation:floatA 22s ease-in-out infinite}
+.orb.o2{width:38vmax;height:38vmax;right:-10vmax;top:-8vmax;opacity:.36;background:radial-gradient(circle at 40% 40%,#aecdff,#6aa6ff 72%);animation:floatB 27s ease-in-out infinite}
+.orb.o3{width:42vmax;height:42vmax;right:6vmax;bottom:-16vmax;opacity:.33;background:radial-gradient(circle at 50% 50%,#e0c6ff,#b98aff 72%);animation:floatC 31s ease-in-out infinite}
+.orb.o4{width:34vmax;height:34vmax;left:4vmax;bottom:-12vmax;opacity:.32;background:radial-gradient(circle at 50% 50%,#b6f3d6,#6fe0aa 72%);animation:floatA 25s ease-in-out infinite reverse}
+.orb.o5{width:26vmax;height:26vmax;left:42vw;top:32vh;opacity:.25;background:radial-gradient(circle at 50% 50%,#ffe0b8,#ffae7a 72%);animation:floatB 29s ease-in-out infinite reverse}
+@keyframes floatA{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(6vw,4vh) scale(1.1)}50%{transform:translate(-4vw,8vh) scale(.94)}75%{transform:translate(3vw,-5vh) scale(1.06)}}
+@keyframes floatB{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-7vw,5vh) scale(1.08)}66%{transform:translate(5vw,-4vh) scale(.92)}}
+@keyframes floatC{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-6vw,-7vh) scale(1.12)}}
+.flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.flow-main,.flow-sub,.flow-glow{fill:none;stroke:url(#flowgrad);stroke-linecap:round;vector-effect:non-scaling-stroke}
+.flow-main{stroke-width:2.2;opacity:.5;stroke-dasharray:2600;stroke-dashoffset:2600;animation:flowdraw 2.6s cubic-bezier(.22,1,.36,1) .2s forwards}
+.flow-sub{stroke-width:1.1}
+.flow-sub.s2{opacity:.2}
+.flow-sub.s3{opacity:.12}
+.flow-glow{stroke-width:7;opacity:.18}
+.flow-breathe{transform-box:fill-box;transform-origin:50% 50%;animation:flowbreathe 26s ease-in-out infinite}
+.flow-spark{fill:#fff;opacity:0;filter:url(#flowsoft);offset-path:path("M-40,210 C300,90 560,360 860,210 S1240,250 1520,110");offset-distance:0%;will-change:offset-distance,opacity;animation:flowrun 34s ease-in-out infinite, flowspark 34s ease-in-out infinite}
+@keyframes flowdraw{to{stroke-dashoffset:0}}
+@keyframes flowbreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.015)}}
+@keyframes flowrun{0%{offset-distance:0%}100%{offset-distance:100%}}
+@keyframes flowspark{0%,100%{opacity:0}42%,58%{opacity:.28}}
+@keyframes rise{ from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none} }
+@keyframes pop{ from{opacity:0; transform:scale(.96)} to{opacity:1; transform:none} }
+@keyframes dash{ to{ stroke-dashoffset:-30 } }
+#top{position:relative;z-index:2;width:100%;max-width:1120px;margin:0 auto;padding:30px 48px 0;flex:0 0 auto}
+#app{ width:100%; max-width:1120px; margin:0 auto; padding:10px 48px 60px; flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+#app>*{width:100%}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;animation:rise .5s var(--ease) both}
+.logo{display:flex;align-items:center;gap:11px}
+.logo-ic{width:36px;height:36px;display:inline-flex}
+.logo-ic svg path{animation:dash 3.2s linear infinite}
+.logo-wm{font-weight:700;font-size:23px;letter-spacing:-.02em;color:var(--ink)}
+.topbar-tag{font-size:14px;color:var(--muted);font-weight:500}
+
+/* ===== Stepper "נתיב נושם" — נתיב אורגני, מטייל נע, תחנות על הדרך ===== */
+.trail-svg{display:block;width:100%;height:auto;overflow:visible;margin:14px 0 8px;animation:rise .5s var(--ease) both .05s}
+.track{stroke:var(--trk);stroke-width:4.5;stroke-linecap:round}
+.trail{stroke:var(--accent);stroke-width:7;stroke-linecap:round;filter:drop-shadow(0 0 9px var(--glow));transition:stroke-dashoffset .6s var(--ease)}
+.hiker{transition:transform .6s var(--ease);filter:drop-shadow(0 0 10px var(--glow))}
+.hiker circle{fill:var(--accent)}
+.stp .dot{fill:var(--bg);stroke:var(--trk);stroke-width:2.5;transition:fill .3s,stroke .3s}
+.stp .halo{fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center}
+.stp .check{stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .3s}
+.stp .lbl{fill:var(--muted);font-weight:600;font-size:15px;font-family:inherit;transition:fill .3s}
+.stp[data-state=active] .dot{fill:var(--accent);stroke:var(--accent)}
+.stp[data-state=active] .halo{opacity:1;animation:halopulse 2.2s ease-in-out infinite}
+.stp[data-state=active] .lbl{fill:var(--ink);font-weight:700}
+.stp[data-state=done] .dot{fill:var(--accent);stroke:var(--accent)}
+.stp[data-state=done] .check{opacity:1}
+.stp[data-state=done] .lbl{fill:var(--accent)}
+.trail-status{display:none}
+.sr-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@keyframes halopulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.85);opacity:0}}
+
+.pill{display:inline-flex;gap:8px;align-items:center;background:rgba(255,90,54,.1);border:1px solid rgba(255,90,54,.22);color:#c43f1f;border-radius:999px;padding:8px 18px;font-weight:600;font-size:14px;margin-bottom:18px;animation:pop .5s var(--ease) both}
+h1.display{font-weight:700;letter-spacing:-.035em;line-height:1.04;font-size:clamp(46px,6vw,76px);margin:0 0 20px;color:var(--ink);animation:rise .6s var(--ease) both .05s}
+h1.intro-title{font-weight:800;font-size:clamp(58px,8vw,98px)}
+h1.intro-title .grad{background:linear-gradient(110deg,#ff8a4c 0%,#ff5a36 55%,#e64a28 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+h2{font-weight:700;letter-spacing:-.025em;font-size:33px;margin:0 0 16px;line-height:1.12;animation:rise .55s var(--ease) both .05s}
+h2.side-title{font-size:15px;color:var(--muted);font-weight:600;margin-bottom:14px}
+h3{font-weight:700;font-size:17px;margin:0 0 8px;letter-spacing:-.01em}
+.lead{color:#4a4a4f;font-size:18px;max-width:46ch;margin:0 0 26px;font-weight:500;line-height:1.65;animation:rise .6s var(--ease) both .12s}
+.btn{position:relative;overflow:hidden;appearance:none;cursor:pointer;font-family:inherit;font-size:17px;font-weight:600;border:none;border-radius:980px;padding:15px 30px;background:linear-gradient(135deg,#ff8a5f 0%,#ff5a36 55%,#ff4768 100%);background-size:160% 160%;background-position:0% 50%;color:#fff;box-shadow:0 10px 28px rgba(255,90,54,.28), 0 2px 6px rgba(255,90,54,.18);transition:transform .35s var(--ease), box-shadow .35s var(--ease), background-position .55s var(--ease), filter .2s}
+.btn::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .6s var(--ease);pointer-events:none}
+.btn:hover{transform:translateY(-4px) scale(1.03);background-position:100% 50%;box-shadow:0 22px 46px rgba(255,90,54,.42), 0 4px 12px rgba(255,71,104,.3);filter:saturate(1.08)}
+.btn:hover::after{left:130%}
+.btn:active{transform:translateY(-1px) scale(.98);filter:brightness(.97)}
+.btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;transform:none}
+.btn.cta{font-size:19px;padding:18px 44px}
+.btn.secondary{background:rgba(255,255,255,.7);color:var(--ink);border:1px solid rgba(0,0,0,.1);box-shadow:0 4px 14px rgba(0,0,0,.05);backdrop-filter:blur(10px)}
+.btn.secondary:hover{background:#fff;transform:translateY(-3px) scale(1.02);box-shadow:0 12px 28px rgba(0,0,0,.12);border-color:rgba(255,90,54,.4);color:var(--accent);filter:none}
+.btn.small{font-size:15px;padding:11px 20px}
+.btn-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px;animation:rise .6s var(--ease) both .2s}
+.back-fixed{position:fixed;top:22px;right:22px;z-index:30;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.1);border-radius:999px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.07);backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);transition:transform .25s var(--ease),box-shadow .25s,background .2s}
+.back-fixed:hover{background:#fff;transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.back-fixed[hidden]{display:none}
+.back-fixed span{font-size:17px;line-height:1}
+@media (max-width:900px){.back-fixed{top:14px;right:14px;padding:8px 14px;font-size:14px}}
+.hero-card{position:relative;max-width:660px;background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.75);border-radius:34px;padding:48px 46px;box-shadow:0 34px 90px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.6);backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%);animation:rise .6s var(--ease) both}
+.eyebrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.itag{font-size:13px;font-weight:600;color:#5b5b60;background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.06);border-radius:999px;padding:6px 14px;box-shadow:0 2px 8px rgba(0,0,0,.04);animation:pop .5s var(--ease) both}
+.eyebrow .itag:nth-child(1){animation-delay:.05s}.eyebrow .itag:nth-child(2){animation-delay:.1s}.eyebrow .itag:nth-child(3){animation-delay:.15s}.eyebrow .itag:nth-child(4){animation-delay:.2s}.eyebrow .itag:nth-child(5){animation-delay:.25s}.eyebrow .itag:nth-child(6){animation-delay:.3s}
+.meta{display:flex;flex-wrap:wrap;gap:20px;margin-top:24px;color:#4a4a4f;font-size:14px;font-weight:600;animation:rise .6s var(--ease) both .28s}
+.meta span{display:inline-flex;align-items:center}
+.meta span::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;margin-inline-end:8px}
+
+.intro-hero{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:calc(100vh - 200px)}
+.intro-hero .lead{margin-inline:auto;max-width:48ch}
+.eyebrow-pill{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.05em;color:#c43f1f;background:rgba(255,90,54,.08);border:1px solid rgba(255,90,54,.25);border-radius:999px;padding:7px 18px;margin-bottom:22px;animation:pop .5s var(--ease) both}
+.feature-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:50px;width:100%;max-width:720px}
+.fcard{background:var(--card);border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:22px 18px;box-shadow:0 16px 50px rgba(0,0,0,.06);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);animation:rise .6s var(--ease) both}
+.feature-row .fcard:nth-child(1){animation-delay:.28s}.feature-row .fcard:nth-child(2){animation-delay:.36s}.feature-row .fcard:nth-child(3){animation-delay:.44s}
+.fnum{font-size:34px;font-weight:700;letter-spacing:-.02em;color:var(--accent);line-height:1}
+.ftext{font-size:14px;color:#4a4a4f;font-weight:600;margin-top:8px}
+.hero-side{align-self:center;animation:rise .7s var(--ease) both .18s}
+.dirs{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--card);border:1px solid rgba(255,255,255,.7);border-radius:26px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.08);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%)}
+.dir{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05);border-radius:14px;padding:12px 13px;transition:transform .25s var(--ease), box-shadow .25s;animation:pop .5s var(--ease) both}
+.dir:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.dirs .dir:nth-child(1){animation-delay:.20s}.dirs .dir:nth-child(2){animation-delay:.25s}.dirs .dir:nth-child(3){animation-delay:.30s}.dirs .dir:nth-child(4){animation-delay:.35s}.dirs .dir:nth-child(5){animation-delay:.40s}.dirs .dir:nth-child(6){animation-delay:.45s}.dirs .dir:nth-child(7){animation-delay:.50s}.dirs .dir:nth-child(8){animation-delay:.55s}.dirs .dir:nth-child(9){animation-delay:.60s}.dirs .dir:nth-child(10){animation-delay:.65s}.dirs .dir:nth-child(11){animation-delay:.70s}.dirs .dir:nth-child(12){animation-delay:.75s}
+.dir .de{font-size:19px}
+
+.stage{max-width:880px;margin:0 auto}
+
+form.ask{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;animation:rise .6s var(--ease) both .12s}
+.field{flex:1 1 340px;background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.1);border-radius:16px;color:var(--ink);padding:16px 18px;font-size:18px;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.04);transition:border-color .2s, box-shadow .2s}
+.field::placeholder{color:#a1a1a6}
+.field:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 4px rgba(255,90,54,.15)}
+.hint{color:var(--muted);font-size:14px;margin:18px 0 10px;animation:rise .6s var(--ease) both .2s}
+.chips{display:flex;flex-wrap:wrap;gap:10px;animation:rise .6s var(--ease) both .26s}
+.chip{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(255,153,51,.12),rgba(255,153,51,.04));border:1px solid rgba(255,140,30,.32);color:#c65a12;border-radius:999px;padding:7px 14px;cursor:pointer;font-size:13.5px;font-weight:600;font-family:inherit;transition:.22s var(--ease);box-shadow:0 1px 4px rgba(255,120,20,.08)}
+.chip:hover{background:linear-gradient(135deg,#ff9933,#ff7a1a);border-color:transparent;color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,120,20,.32)}
+
+.opt{display:flex;width:100%;text-align:start;align-items:center;gap:16px;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.07);color:var(--ink);border-radius:20px;padding:14px 18px;margin-bottom:12px;cursor:pointer;font-family:inherit;font-size:17px;box-shadow:0 4px 16px rgba(0,0,0,.04);transition:transform .25s var(--ease), box-shadow .25s, border-color .2s, background .2s;animation:rise .5s var(--ease) both;backdrop-filter:blur(10px)}
+.opt:hover{border-color:rgba(255,90,54,.45);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.09)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:rgba(255,90,54,.07);box-shadow:0 8px 26px rgba(255,90,54,.2)}
+.opt .swatch{flex:0 0 44px;height:44px;border-radius:50%;background:#f0f0f3;border:none;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#86868b;transition:.25s var(--ease)}
+.opt[aria-pressed="true"] .swatch{background:var(--accent);color:#fff;transform:scale(1.05)}
+.opt .txt{flex:1}
+.opt .mark{flex:0 0 28px;height:28px;border-radius:50%;border:2px solid rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;font-weight:900;color:transparent;transition:.2s}
+.opt[aria-pressed="true"] .mark{border-color:var(--accent);color:var(--accent)}
+
+.progress-wrap{margin-bottom:24px;animation:rise .5s var(--ease) both}
+.progress-text{display:flex;justify-content:space-between;font-size:17px;color:var(--muted);font-weight:700;margin-bottom:12px}
+.bar{height:16px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#ff8a4c,var(--accent));border-radius:999px;box-shadow:0 2px 10px rgba(255,90,54,.4);transition:width .5s var(--ease)}
+.feedback{min-height:24px;margin:8px 4px 0;font-size:15px;font-weight:600;color:#c43f1f}
+.feedback.empty{color:var(--muted);font-weight:400}
+
+.result-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:26px;align-items:stretch}
+.result-grid>.rec,.result-grid>div{display:flex;flex-direction:column}
+.result-grid>.rec>.next{margin-top:auto}
+.result-grid>div>.block:last-child{margin-top:auto;margin-bottom:0}
+.rec{animation:rise .6s var(--ease) both .05s}
+.rec-head{display:flex;gap:18px;align-items:center;margin:6px 0 4px}
+.rec-emoji{font-size:54px;line-height:1;animation:pop .6s var(--ease) both .1s}
+.match-tag{display:inline-block;background:rgba(255,90,54,.1);border:1px solid rgba(255,90,54,.3);color:#c43f1f;border-radius:999px;padding:5px 14px;font-weight:600;font-size:14px;margin-top:8px}
+.why{background:var(--card);border:1px solid rgba(255,255,255,.7);border-radius:20px;padding:18px;font-size:16px;margin:18px 0;box-shadow:0 12px 40px rgba(0,0,0,.06);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}
+.why b{color:var(--accent)}
+.next{background:rgba(255,90,54,.08);border:1px solid rgba(255,90,54,.25);border-radius:20px;padding:16px 18px;font-size:16px}
+.next b{color:var(--accent)}
+.ressteps{margin:10px 0 0;padding-inline-start:22px}
+.ressteps li{margin-bottom:8px;font-size:15px}
+.block{background:var(--card);border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;margin-bottom:16px;box-shadow:0 12px 40px rgba(0,0,0,.06);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);animation:rise .6s var(--ease) both .12s}
+.reschips{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.reschip{background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.07);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;transition:transform .2s var(--ease)}
+.reschip:hover{transform:translateY(-2px)}
+.insight{font-size:15px;color:var(--ink);background:rgba(110,170,255,.1);border:1px solid rgba(110,170,255,.3);border-radius:16px;padding:14px 16px;margin-top:6px}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.stat{flex:1 1 100px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);border-radius:16px;padding:14px}
+.stat .k{font-size:13px;color:var(--muted)}
+.stat .v{font-size:17px;font-weight:700;margin-top:2px}
+
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:14px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important} .flow-main{stroke-dashoffset:0} .flow-spark{offset-distance:80%;opacity:.24}}
+/* מסך מחשב — התוכן ממלא ומתמרכז; מותאם במיוחד למסך אנכי 1080×1920 */
+@media (min-width:1000px){
+  #top{max-width:1180px;padding:54px 60px 0}
+  #app{max-width:1180px;padding:20px 60px 80px}
+  .stage{max-width:1000px}
+  h1.display{font-size:clamp(56px,5vw,84px)}
+  h1.intro-title{font-size:clamp(72px,7vw,108px)}
+  h2{font-size:44px;margin-bottom:22px}
+  h3{font-size:21px}
+  .lead{font-size:24px;max-width:56ch;margin-bottom:34px;line-height:1.7}
+  .intro-hero{min-height:calc(100vh - 320px)}
+  .feature-row{max-width:880px;margin-top:64px;gap:22px}
+  .fcard{padding:30px 24px;border-radius:26px}
+  .fnum{font-size:44px}
+  .ftext{font-size:17px}
+  .pill,.eyebrow-pill{font-size:16px;padding:10px 22px;margin-bottom:24px}
+  .btn{font-size:20px;padding:18px 36px}
+  .btn.cta{font-size:23px;padding:22px 54px}
+  .opt{font-size:17.5px;padding:10px 18px;margin-bottom:8px;border-radius:18px;gap:12px}
+  .opt .swatch{flex-basis:38px;height:38px;font-size:17px}
+  .opt .mark{flex-basis:25px;height:25px}
+  .field{font-size:21px;padding:19px 22px}
+  .chip{font-size:15.5px;padding:9px 18px}
+  .progress-text{font-size:18px}
+  .progress-wrap{margin-bottom:14px}
+  .bar{height:18px}
+  /* בשאלון: כותרת ושורת ניווט צמודות יותר כדי שכל 6 התשובות ייכנסו בלי גלילה */
+  .stage .progress-wrap+h2{font-size:31px;margin-bottom:12px}
+  .stage .feedback{min-height:18px;margin-top:2px}
+  .stage .opt+.feedback+.btn-row,.stage .btn-row{margin-top:12px}
+  .why,.next{font-size:19px;padding:24px}
+  .ressteps li{font-size:17px}
+  .insight{font-size:17px;padding:18px 20px}
+  .result-grid{gap:44px}
+  .block{padding:26px;margin-bottom:24px}
+  .why{margin:24px 0}
+  .reschip{font-size:15px;padding:9px 16px}
+}
+@media (max-width:900px){
+  #top{padding:22px 22px 0}
+  #app{padding:8px 22px 50px}
+  .intro-hero{min-height:calc(100vh - 200px)}
+  .hero-card{padding:32px 24px;border-radius:26px}
+  .result-grid{grid-template-columns:1fr}
+  .node .nlabel{display:none}
+  h2{font-size:27px}
+}
+
+/* ===================== מסך סיום — כרטיסיות לרוחב מלא + ריווח אנכי אחיד ===================== */
+.stage-result{max-width:1180px;display:flex;flex-direction:column;gap:24px}
+.stage-result .result-grid{grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}
+.stage-result .result-grid>.rec,.stage-result .result-grid>div{display:flex;flex-direction:column;gap:24px}
+.stage-result .pill,.stage-result .rec-head,.stage-result .why,.stage-result .block,.stage-result .next,.stage-result .insight{margin:0}
+.stage-result .pill{align-self:flex-start}
+.stage-result .btn-row{margin:0}
+@media (min-width:1000px){ .stage-result{max-width:1180px;gap:30px} .stage-result .result-grid{gap:30px} .stage-result .result-grid>.rec,.stage-result .result-grid>div{gap:30px} }
+@media (max-width:900px){ .stage-result .result-grid{grid-template-columns:1fr} }
+
+/* מסך סיום מחודש — ההמלצה גדולה ובולטת, בלי אייקונים */
+.res-hero{text-align:center;padding:8px 0 2px;animation:rise .6s var(--ease) both .05s}
+.res-eyebrow{font-size:15px;font-weight:600;letter-spacing:.12em;color:var(--accent);margin-bottom:14px}
+.res-title{font-weight:800;letter-spacing:-.03em;line-height:1.02;font-size:clamp(48px,7vw,92px);margin:0 0 18px;color:var(--ink)}
+.res-match{display:inline-block;font-size:19px;font-weight:600;color:rgba(255,255,255,.82)}
+.res-grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}
+.res-sec{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.res-grid2 .why,.res-grid2 .next{margin:0;font-size:19px}
+@media (min-width:1000px){ .res-grid2,.res-sec{gap:30px} .res-title{font-size:clamp(58px,6vw,104px)} }
+@media (max-width:900px){ .res-grid2,.res-sec{grid-template-columns:1fr} }
+
+/* ===================== ערכת כהה (Dark) ===================== */
+body{background:#05070b}
+.lead,.ftext,.meta{color:rgba(255,255,255,.72)}
+.meta span::before{background:var(--accent)}
+.itag{color:rgba(255,255,255,.78);background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);box-shadow:none}
+/* תגים ככתב רגיל — בלי רקע/מסגרת */
+.pill,.eyebrow-pill{background:none;border:0;padding:0;box-shadow:none;color:var(--accent);font-weight:700;letter-spacing:.01em}
+.match-tag{background:none;border:0;padding:0;box-shadow:none;color:#ff9d73;font-weight:600;margin-top:6px}
+/* כרטיסיות — זכוכית כהה אטומה ואחידה (שהמש לא יבצבץ דרכן) */
+.hero-card{background:rgba(13,17,25,.55);border-color:rgba(255,255,255,.1);box-shadow:0 34px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06)}
+.fcard,.why,.block,.stat,.dirs{background:rgba(13,17,25,.66);border-color:rgba(255,255,255,.1);box-shadow:0 16px 50px rgba(0,0,0,.5)}
+.reschip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+.why b,.next b{color:var(--accent)}
+.field{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);color:var(--ink)}
+.field::placeholder{color:rgba(255,255,255,.4)}
+.field:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,106,61,.22)}
+.chip{background:rgba(255,153,51,.12);border-color:rgba(255,140,30,.4);color:#ffbe93}
+.opt{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ink)}
+.opt:hover{border-color:rgba(255,106,61,.5);background:rgba(255,255,255,.08)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:rgba(255,106,61,.16);box-shadow:0 8px 26px rgba(255,106,61,.25)}
+.opt .swatch{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75)}
+.opt[aria-pressed="true"] .swatch{background:var(--accent);color:#fff}
+.opt .mark{border-color:rgba(255,255,255,.28)}
+.bar{background:rgba(255,255,255,.14)}
+.feedback{color:#ffc2aa}
+.feedback.empty{color:var(--muted)}
+.next{background:rgba(255,106,61,.12);border-color:rgba(255,106,61,.3)}
+.insight{background:rgba(110,170,255,.14);border-color:rgba(110,170,255,.32);color:#eaf1ff}
+.btn.secondary{background:rgba(255,255,255,.08);color:var(--ink);border-color:rgba(255,255,255,.2);backdrop-filter:blur(10px)}
+.btn.secondary:hover{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,106,61,.45)}
+.back-fixed{background:rgba(255,255,255,.08);color:var(--ink);border-color:rgba(255,255,255,.2)}
+.back-fixed:hover{background:rgba(255,255,255,.14)}
+.stat .k{color:rgba(255,255,255,.6)}
+.hint{color:var(--muted)}
+/* Stepper "נתיב נושם" — לבן */
+.track{stroke:rgba(255,255,255,.22)}
+.trail{stroke:#fff;filter:drop-shadow(0 0 9px rgba(255,255,255,.42))}
+.hiker{filter:drop-shadow(0 0 10px rgba(255,255,255,.5))}
+.hiker circle{fill:#fff}
+.stp .halo{stroke:#fff}
+.stp .dot{fill:#161922;stroke:rgba(255,255,255,.45)}
+.stp[data-state=active] .dot{fill:#fff;stroke:#fff}
+.stp[data-state=done] .dot{fill:#fff;stroke:#fff}
+.stp[data-state=done] .check{stroke:#0a0c11}
+.stp .lbl{fill:rgba(255,255,255,.62)}
+.stp[data-state=active] .lbl{fill:#fff}
+.stp[data-state=done] .lbl{fill:rgba(255,255,255,.92)}
+.trail-status{color:var(--ink)}
+.trail-status span{color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+  <div id="bg" aria-hidden="true"><canvas id="shaderbg"></canvas></div>
+  <button id="backFixed" type="button" class="back-fixed" hidden aria-label="חזרה"><span aria-hidden="true">→</span> חזרה</button>
+  <header id="top" aria-label="ניווט והתקדמות"></header>
+  <main id="app" role="main" aria-live="polite"></main>
+<script>
+/* ===================== מאגר תחומי הלימוד ===================== */
+const AXES = ['people','data','creative','hands','words','science','tech','business'];
+const FIELDS = {
+  cs:    {name:'מדעי המחשב ופיתוח תוכנה', emoji:'💻', dims:{tech:3,data:2}, kw:['תכנות','קוד','מחשב','תוכנה','אפליקציה','משחק','בינה','ai','אלגוריתם','סייבר','האקר','דאטה'], first:'נסו קורס מבוא לתכנות (Python) באתר חינמי'},
+  data:  {name:'מדע הנתונים ובינה מלאכותית', emoji:'📊', dims:{data:3,tech:2,science:1}, kw:['נתונים','דאטה','סטטיסטיקה','data','בינה מלאכותית','מודל','ניתוח','מחקר נתונים'], first:'נתחו סט נתונים קטן בגיליון אלקטרוני'},
+  eng:   {name:'הנדסה (חשמל / מכונות / תעשייה)', emoji:'⚙️', dims:{hands:2,data:2,science:2,tech:1}, kw:['הנדסה','מכונות','חשמל','מערכות','רובוטיקה','תעשייה','מהנדס'], first:'פרקו והרכיבו מכשיר פשוט, או נסו ערכת רובוטיקה'},
+  design:{name:'עיצוב גרפי וחוויית משתמש', emoji:'🎨', dims:{creative:3,tech:1,words:1}, kw:['עיצוב','גרפי','לוגו','ux','ui','ממשק','חזותי','אסתטיקה','פיגמה'], first:'עצבו פוסטר או מסך אחד בכלי כמו Figma או Canva'},
+  art:   {name:'אמנות ויצירה', emoji:'🖌️', dims:{creative:3}, kw:['ציור','אמנות','יצירה','פיסול','צילום','מוזיקה','קולנוע','תיאטרון'], first:'התחילו פרויקט יצירה אישי קטן השבוע'},
+  arch:  {name:'אדריכלות ועיצוב פנים', emoji:'🏛️', dims:{creative:2,hands:1,data:1}, kw:['אדריכלות','עיצוב פנים','מבנים','חלל','תכנון','בנייה'], first:'שרטטו תוכנית של חדר וחשבו איך לשפר אותו'},
+  med:   {name:'רפואה ומקצועות הבריאות', emoji:'🩺', dims:{science:3,people:2}, kw:['רפואה','בריאות','אחות','טיפול','גוף','מחלות','פרא-רפואי','פיזיותרפיה'], first:'התנדבו או הצלילו במסגרת בריאותית כדי לטעום את התחום'},
+  bio:   {name:'ביולוגיה ומדעי החיים', emoji:'🧬', dims:{science:3,data:1}, kw:['ביולוגיה','מעבדה','גנטיקה','סביבה','בעלי חיים','טבע','אקולוגיה'], first:'קראו מאמר מדעי פופולרי בתחום שמסקרן אתכם'},
+  psy:   {name:'פסיכולוגיה והתנהגות', emoji:'🧠', dims:{people:3,science:1,words:1}, kw:['פסיכולוגיה','נפש','התנהגות','רגש','טיפול','מוח','ייעוץ'], first:'קראו ספר או האזינו לפודקאסט מבוא לפסיכולוגיה'},
+  edu:   {name:'חינוך והוראה', emoji:'📚', dims:{people:3,words:2}, kw:['חינוך','הוראה','ילדים','מורה','הדרכה','למידה','גן'], first:'הדריכו או חנכו מישהו בנושא שאתם טובים בו'},
+  law:   {name:'משפטים', emoji:'⚖️', dims:{words:3,data:1,people:1}, kw:['משפטים','חוק','עורך דין','צדק','טיעון','זכויות','בית משפט'], first:'קראו פסק דין מתוקשר ונתחו את הטיעונים'},
+  biz:   {name:'עסקים ויזמות', emoji:'🚀', dims:{business:3,people:2}, kw:['עסקים','יזמות','סטארטאפ','ניהול','מכירות','כסף','חברה','מנהל'], first:'בנו רעיון עסקי קטן וכתבו דף עסקי בן עמוד אחד'},
+  econ:  {name:'כלכלה ופיננסים', emoji:'💹', dims:{data:3,business:2}, kw:['כלכלה','פיננסים','בורסה','השקעות','מאקרו','בנקאות','כסף','רואה חשבון'], first:'עקבו אחרי מניה או מדד שבוע ונסו להסביר את התנועות'},
+  mkt:   {name:'שיווק, תקשורת ומדיה', emoji:'📣', dims:{words:2,creative:2,business:1,people:1}, kw:['שיווק','תקשורת','מדיה','פרסום','תוכן','סושיאל','קופי','עיתונות','יח"צ'], first:'נהלו עמוד תוכן קטן לשבוע ובדקו מה עובד'},
+  soc:   {name:'מדעי החברה ומדע המדינה', emoji:'🌍', dims:{people:2,words:2,data:1}, kw:['חברה','פוליטיקה','מדינה','סוציולוגיה','קהילה','בינלאומי','דיפלומטיה'], first:'קראו ניתוח עומק על סוגיה חברתית שמעניינת אתכם'},
+  trade: {name:'מקצועות מעשיים (חשמל, מכונאות, בנייה)', emoji:'🔧', dims:{hands:3,tech:1}, kw:['חשמלאי','מכונאי','טכנאי','בנייה','התקנה','שיפוצים','ידיים','מסגרות'], first:'נסו פרויקט "עשה זאת בעצמך" אמיתי בבית'},
+};
+
+/* 5 שאלות — כולל שאלה על מה שלמדת בבית הספר. כל אופציה תורמת משקלים לצירים */
+const QUESTIONS = [
+  {id:'subject', q:'איזה תחום בבית הספר הכי דיבר אליכם?', options:[
+    {label:'מתמטיקה ומדעים מדויקים (פיזיקה, מחשבים)', w:{data:2,tech:1,science:1}},
+    {label:'מדעי החיים (ביולוגיה, כימיה)',            w:{science:2,data:1}},
+    {label:'מדעי הרוח (ספרות, היסטוריה, פילוסופיה)',  w:{words:2,people:1}},
+    {label:'אמנויות (אמנות, מוזיקה, תיאטרון)',         w:{creative:3}},
+    {label:'מדעי החברה (אזרחות, פסיכולוגיה, גאוגרפיה)',w:{people:2,words:1}},
+    {label:'מקצועות מעשיים / טכנולוגיים',              w:{hands:2,tech:1}},
+  ]},
+  {id:'strength', q:'במה אתם הכי טובים באופן טבעי?', options:[
+    {label:'לפתור בעיות לוגיות ולעבוד עם מספרים', w:{data:2,science:1}},
+    {label:'ליצור ולהביע בצורה חזותית',           w:{creative:3}},
+    {label:'להבין אנשים ולתקשר איתם',             w:{people:2,words:1}},
+    {label:'לבנות ולתקן דברים עם הידיים',          w:{hands:2,tech:1}},
+    {label:'לכתוב, לנסח ולשכנע',                  w:{words:2,people:1}},
+    {label:'לארגן, לנהל ולהוביל',                 w:{business:2,people:1}},
+  ]},
+  {id:'goal', q:'מה הכי חשוב לכם בקריירה עתידית?', options:[
+    {label:'יציבות וביטחון תעסוקתי',     w:{data:1,tech:1,science:1}},
+    {label:'לעזור לאנשים ולתרום לעולם',  w:{people:3,science:1}},
+    {label:'יצירתיות וביטוי עצמי',        w:{creative:3,words:1}},
+    {label:'הכנסה גבוהה והשפעה',          w:{business:2,data:1}},
+    {label:'עצמאות ולהקים משהו משלי',     w:{business:3}},
+    {label:'גיוון ואתגר אינטלקטואלי',     w:{data:1,science:1,words:1}},
+  ]},
+  {id:'env', q:'באיזו סביבה הכי בא לכם לעבוד?', options:[
+    {label:'מול מחשב, בפתרון בעיות',  w:{tech:2,data:1}},
+    {label:'עם ובין אנשים',           w:{people:3}},
+    {label:'בסטודיו או חלל יצירה',    w:{creative:3}},
+    {label:'בשטח / עם הידיים',        w:{hands:3}},
+    {label:'במשרד דינמי / עסקי',      w:{business:2,people:1}},
+    {label:'במעבדה או במחקר',         w:{science:3,data:1}},
+  ]},
+  {id:'clarity', q:'כמה ברור לכם מה אתם רוצים ללמוד?', options:[
+    {label:'ממש לא — אני מחפש/ת כיוון', w:{}},
+    {label:'יש לי כמה כיוונים אפשריים', w:{}},
+    {label:'די ברור לי, רוצה אימות',    w:{}},
+  ]},
+];
+
+const SUGGESTIONS = ['בינה מלאכותית','עיצוב','רפואה','פסיכולוגיה','עסקים','אמנות','חינוך','כלכלה','משפטים','ביולוגיה'];
+const LETTERS = ['א','ב','ג','ד','ה','ו'];
+const TOTAL_STEPS = QUESTIONS.length;
+const STAGES = [
+  {key:'intro',    label:'התחלה'},
+  {key:'interest', label:'תחום עניין'},
+  {key:'detect',   label:'נקודת מוצא'},
+  {key:'quiz',     label:'שאלון'},
+  {key:'result',   label:'ההמלצה'},
+];
+/* ===================== מצב ===================== */
+let state = {};
+function resetState(){ state = {screen:'intro', interestText:'', seedField:null, detectSource:null, answers:{}, step:0, startTime:null}; }
+resetState();
+const app = document.getElementById('app');
+const topEl = document.getElementById('top');
+let trailEl=null, hikerEl=null, stpEls=[], srStatus=null, statusLine=null, trailLen=0;
+const STEP_FRAC=[0,0.25,0.5,0.75,1];
+const TRAIL_VB="0 0 1100 160";
+const TRAIL_D="M 1050 70 C 880 70 850 40 660 54 S 420 118 270 82 S 110 44 50 96";
+
+/* ===================== כלי DOM ===================== */
+function el(tag, props={}, children=[]){
+  const n=document.createElement(tag);
+  for(const k in props){
+    const v=props[k];
+    if(v==null || v===false) continue;
+    if(k==='class') n.className=v;
+    else if(k==='html') n.innerHTML=v;
+    else if(k==='disabled'){ if(v) n.disabled=true; }
+    else if(k.slice(0,2)==='on') n.addEventListener(k.slice(2).toLowerCase(), v);
+    else n.setAttribute(k, v);
+  }
+  (Array.isArray(children)?children:[children]).forEach(c=>{ if(c==null) return; n.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+  return n;
+}
+function clear(){ app.innerHTML=''; }
+function focusFirst(){ const t=app.querySelector('h1,h2'); if(t){ t.setAttribute('tabindex','-1'); t.focus({preventScroll:true}); } }
+function navRow(c){ return el('div',{class:'btn-row'}, c); }
+function backBtn(fn){ return el('button',{class:'btn secondary', type:'button', onClick:fn},'חזרה'); }
+function stat(k,v){ return el('div',{class:'stat'},[ el('div',{class:'k'},k), el('div',{class:'v'},v) ]); }
+
+const LOGO_SVG = '<svg viewBox="0 0 48 48" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 39 C 11 26, 37 28, 37 14" stroke="#ff5a36" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.4 7"/><circle cx="11" cy="39" r="4.2" fill="#1d1d1f"/><circle cx="37" cy="13" r="6.6" fill="#ff5a36"/><circle cx="37" cy="13" r="2.6" fill="#ffffff"/></svg>';
+function logo(){ return el('div',{class:'logo'},[ el('span',{class:'logo-ic','aria-hidden':'true', html:LOGO_SVG}), el('span',{class:'logo-wm'},'המסלול') ]); }
+
+function stageIndex(){ if(state.screen==='quiz') return 3; const i=STAGES.findIndex(s=>s.key===state.screen); return i<0?0:i; }
+function routeFraction(){ const n=STAGES.length-1; if(state.screen==='quiz') return (3+state.step/TOTAL_STEPS)/n; return stageIndex()/n; }
+/* הכותרת וה-Stepper "נתיב נושם" נבנים פעם אחת ונשארים קבועים; topBar מעדכן את ההתקדמות */
+function buildTop(){
+  topEl.innerHTML='';
+  topEl.append(el('div',{class:'topbar'},[ logo(), el('span',{class:'topbar-tag'},'מה ללמוד בעתיד — סימולטור הכוונה') ]));
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('class','trail-svg'); svg.setAttribute('viewBox',TRAIL_VB);
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet'); svg.setAttribute('aria-hidden','true');
+  svg.innerHTML='<path class="track" d="'+TRAIL_D+'" fill="none"/><path class="trail" d="'+TRAIL_D+'" fill="none"/><g class="stations"></g><g class="hiker"><circle r="11"/></g>';
+  topEl.append(svg);
+  trailEl=svg.querySelector('.trail'); hikerEl=svg.querySelector('.hiker');
+  const stations=svg.querySelector('.stations');
+  trailLen=trailEl.getTotalLength();
+  trailEl.style.strokeDasharray=trailLen; trailEl.style.strokeDashoffset=trailLen;
+  stpEls=[];
+  STAGES.forEach((s,i)=>{
+    const pt=trailEl.getPointAtLength(trailLen*STEP_FRAC[i]);
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('class','stp'); g.setAttribute('transform','translate('+pt.x+' '+pt.y+')'); g.dataset.state='upcoming';
+    g.innerHTML='<circle class="halo" r="19"/><circle class="dot" r="11"/><path class="check" d="M-4.5 0 L-1 4 L5 -4.5" fill="none"/><text class="lbl" y="34" text-anchor="middle">'+s.label+'</text>';
+    stations.appendChild(g); stpEls.push(g);
+  });
+  srStatus=el('p',{class:'sr-status', role:'status','aria-live':'polite'});
+  statusLine=el('div',{class:'trail-status','aria-hidden':'true'});
+  topEl.append(srStatus, statusLine);
+}
+function trailFraction(){ const i=stageIndex(); if(state.screen==='quiz') return 0.75+(state.step/TOTAL_STEPS)*0.2; return STEP_FRAC[i]; }
+function topBar(){
+  const i=stageIndex(), frac=trailFraction();
+  if(trailEl){
+    const off=trailLen*(1-frac);
+    if(state.screen==='intro'){ trailEl.style.transition='none'; trailEl.style.strokeDashoffset=off; void trailEl.getBoundingClientRect(); trailEl.style.transition=''; }
+    else trailEl.style.strokeDashoffset=off;
+    const p=trailEl.getPointAtLength(trailLen*frac);
+    hikerEl.setAttribute('transform','translate('+p.x+' '+p.y+')');
+  }
+  stpEls.forEach((g,idx)=>{ g.dataset.state = idx<i?'done' : idx===i?'active':'upcoming'; });
+  const label=STAGES[i].label;
+  if(srStatus) srStatus.textContent='שלב '+(i+1)+' מתוך '+STAGES.length+': '+label;
+  if(statusLine) statusLine.textContent=label+' · שלב '+(i+1)+' מתוך '+STAGES.length;
+}
+
+/* ===================== מנוע ההמלצה (מובנה) ===================== */
+function detectField(raw){
+  const t=(raw||'').toLowerCase(); let best=null, bestHits=0;
+  for(const id in FIELDS){ let h=0; FIELDS[id].kw.forEach(w=>{ const ww=w.toLowerCase(); if(ww.length>=2 && t.indexOf(ww)!==-1) h++; }); if(h>bestHits){ bestHits=h; best=id; } }
+  return {field:best, hits:bestHits};
+}
+function userDims(){
+  const d={}; AXES.forEach(a=>d[a]=0);
+  if(state.seedField){ const fd=FIELDS[state.seedField].dims; for(const a in fd) d[a]+=fd[a]; }
+  QUESTIONS.forEach(q=>{ const sel=state.answers[q.id]; if(Array.isArray(sel)){ sel.forEach(i=>{ const w=q.options[i].w||{}; for(const a in w) d[a]+=w[a]; }); } });
+  return d;
+}
+function rankFields(){
+  const d=userDims();
+  return Object.keys(FIELDS).map(id=>{
+    const fd=FIELDS[id].dims; let s=0; for(const a in fd) s+=fd[a]*(d[a]||0);
+    if(id===state.seedField) s+=4;
+    return {id, score:s, ...FIELDS[id]};
+  }).sort((a,b)=>b.score-a.score);
+}
+function ans(id){ const q=QUESTIONS.find(x=>x.id===id); const sel=state.answers[id]; if(!Array.isArray(sel)||!sel.length) return '—'; return sel.map(i=>q.options[i].label).join(' · '); }
+function engineView(){
+  const ranked=rankFields();
+  const top=ranked[0], r2=ranked[1], r3=ranked[2];
+  const tot=ranked.slice(0,4).reduce((a,f)=>a+Math.max(0,f.score),0)||1;
+  const pct=Math.max(35, Math.round(Math.max(0,top.score)/tot*100));
+  const gap=Math.max(0,top.score)-Math.max(0,r2.score);
+  const conf= gap>=4?'התאמה ברורה': gap>=2?'התאמה טובה':'התאמה קרובה — שווה לשקול גם את החלופות';
+  const intro = state.detectSource==='text' ? 'כתבת «'+state.interestText+'», ' : '';
+  const cl = Array.isArray(state.answers.clarity) ? state.answers.clarity : [];
+  const insight = cl.includes(0) ? 'אתם עדיין מחפשים — וזה לגיטימי לגמרי. במקום להחליט סופית, נסו להתנסות בכיוון המוביל לכמה שבועות ולראות איך זה מרגיש.'
+              : cl.includes(2) ? 'אתם כבר די ממוקדים — קחו את ההמלצה כאישור, והתחילו לבנות ניסיון מעשי בתחום כבר עכשיו.'
+              : 'יש לכם כמה כיוונים — ההמלצה הזו עוזרת לדרג אותם. שווה לבדוק לעומק גם את החלופות שמופיעות כאן.';
+  return {
+    ai:false, emoji:top.emoji, title:top.name, pct, conf,
+    reason: intro+'בבית הספר התחברת ל«'+ans('subject')+'», החוזק שלך הוא «'+ans('strength')+'», המטרה היא «'+ans('goal')+'», ובא לך לעבוד «'+ans('env')+'». מהשילוב הזה הכיוון שבולט הוא '+top.name+'.',
+    also:[r2.name, r3.name],
+    steps:[top.first, 'דברו עם מישהו שכבר עובד בתחום ושאלו איך הוא הגיע לשם', 'חפשו קורס או סרטון מבוא ובדקו אם זה ממשיך לסקרן אתכם'],
+    insight
+  };
+}
+
+/* ===================== מסכים ===================== */
+function renderIntro(){
+  clear(); topBar();
+  const hero = el('div',{class:'intro-hero'},[
+    el('h1',{class:'display intro-title', html:'מסלול <span class="grad">הלימודים</span>'}),
+    el('p',{class:'lead'},'כמה שאלות קצרות — ובסוף מגלים את כיוון הלימודים שמתאים בדיוק לכם.'),
+    navRow([ el('button',{class:'btn cta', onClick:()=>{ state.screen='interest'; render(); }},'יוצאים לדרך') ])
+  ]);
+  app.append(hero);
+  focusFirst();
+}
+function renderInterest(){
+  clear(); topBar();
+  const wrap = el('div',{class:'stage'});
+  wrap.append(
+    el('h2',{},'מה הכי מעניין אתכם?'),
+    el('p',{class:'lead'},'כתבו בחופשיות, במילים שלכם — אין רשימה סגורה. זו נקודת המוצא: ממנה נצא, ובהמשך נדייק עם כמה שאלות קצרות. אפשר לכתוב תחום, תחביב, מקצוע חלומי, או אפילו "אני לא יודע/ת".')
+  );
+  const input = el('input',{type:'text', id:'interestInput', class:'field', placeholder:'לדוגמה: אני אוהב/ת לעזור לאנשים / בינה מלאכותית / לצייר…', autocomplete:'off', value:state.interestText||'',
+    oninput:(e)=>{ state.interestText=e.target.value; const b=document.getElementById('goInterest'); if(b) b.disabled = e.target.value.trim().length<2; }});
+  wrap.append(el('form',{class:'ask', onsubmit:(e)=>{ e.preventDefault(); submitInterest(); }},[
+    el('label',{class:'visually-hidden', for:'interestInput'},'תחום העניין שלך'),
+    input,
+    el('button',{class:'btn', type:'submit', id:'goInterest', disabled:(state.interestText||'').trim().length<2},'המשך')
+  ]));
+  const chips = el('div',{class:'chips'});
+  SUGGESTIONS.forEach(s=>{ chips.append(el('button',{type:'button', class:'chip', onClick:()=>{ state.interestText=s; const inp=document.getElementById('interestInput'); inp.value=s; document.getElementById('goInterest').disabled=false; inp.focus(); }}, '＋ '+s)); });
+  wrap.append(el('p',{class:'hint'},'רעיונות להשראה (אפשר ללחוץ — או לכתוב משהו אחר):'), chips);
+  app.append(wrap);
+  input.focus({preventScroll:true});
+}
+function submitInterest(){
+  const raw=(state.interestText||'').trim();
+  if(raw.length<2) return;
+  const {field, hits}=detectField(raw);
+  if(hits>0){ state.seedField=field; state.detectSource='text'; }
+  else { state.seedField=null; state.detectSource='none'; }
+  state.screen='detect'; render();
+}
+
+function renderDetect(){
+  clear(); topBar();
+  const wrap = el('div',{class:'stage'});
+  if(state.seedField){
+    wrap.append(
+      el('span',{class:'pill'},'🧭 נקודת המוצא שלכם'),
+      el('h2',{},'מהמילים שלכם אספנו רמז ראשון'),
+      el('p',{class:'lead'},'נראה שמה שכתבתם («'+state.interestText+'») מתחבר לכיוון של '+FIELDS[state.seedField].name+'. זו רק נקודת מוצא — חמש השאלות הבאות יקבעו את ההמלצה הסופית, וייתכן שהיא תפתיע אתכם.')
+    );
+  } else {
+    wrap.append(
+      el('span',{class:'pill'},'🧭 יוצאים לדרך'),
+      el('h2',{},'נגלה את הכיוון יחד'),
+      el('p',{class:'lead'},'לא נעלנו אתכם על תחום מסוים מהטקסט — וזה בסדר גמור. ההמלצה תיבנה כולה מהתשובות שלכם בשאלון הקצר שבא עכשיו.')
+    );
+  }
+  wrap.append(navRow([ el('button',{class:'btn', onClick:()=>startQuiz()},'ממשיכים בשאלון') ]));
+  app.append(wrap);
+  focusFirst();
+}
+function startQuiz(){ state.answers={}; state.step=0; state.startTime=Date.now(); state.ai=null; state.aiStatus='idle'; state.aiErr=null; state.screen='quiz'; render(); }
+
+function renderQuiz(){
+  clear(); topBar();
+  const wrap = el('div',{class:'stage'});
+  const q = QUESTIONS[state.step];
+  const qKey = q.id;
+  const sel = Array.isArray(state.answers[qKey]) ? state.answers[qKey] : (state.answers[qKey]=[]);
+  const pct = Math.round((state.step/TOTAL_STEPS)*100);
+  wrap.append(el('div',{class:'progress-wrap'},[
+    el('div',{class:'progress-text'},[ el('span',{},'שאלה '+(state.step+1)+' מתוך '+TOTAL_STEPS), el('span',{},pct+'% מהשאלון') ]),
+    el('div',{class:'bar', role:'progressbar','aria-valuemin':'0','aria-valuemax':'100','aria-valuenow':String(pct),'aria-label':'התקדמות בשאלון'},[ el('i',{style:'width:'+pct+'%'}) ])
+  ]));
+  wrap.append(el('h2',{}, q.q));
+  function fbText(){ const n=(state.answers[qKey]||[]).length; return n ? ('✓ '+(n===1?'נבחרה תשובה אחת':'נבחרו '+n+' תשובות')) : 'אפשר לבחור כמה תשובות שמתאימות לכם — לא חייבים רק אחת.'; }
+  const fb = el('p',{class: sel.length?'feedback':'feedback empty', id:'fb','aria-live':'polite'}, fbText());
+  function sync(){ const n=(state.answers[qKey]||[]).length; fb.className=n?'feedback':'feedback empty'; fb.textContent=fbText(); const nb=document.getElementById('nextBtn'); if(nb) nb.disabled=n===0; }
+  q.options.forEach((opt,i)=>{
+    wrap.append(el('button',{class:'opt', type:'button', style:'animation-delay:'+(0.05*i)+'s', role:'checkbox','aria-checked':String(sel.includes(i)),'aria-pressed':String(sel.includes(i)),'data-opt':String(i), onClick:()=>{
+      const arr=Array.isArray(state.answers[qKey])?state.answers[qKey]:(state.answers[qKey]=[]);
+      const pos=arr.indexOf(i); if(pos===-1) arr.push(i); else arr.splice(pos,1);
+      const me=wrap.querySelector('.opt[data-opt="'+i+'"]'); const on=arr.includes(i);
+      if(me){ me.setAttribute('aria-pressed',String(on)); me.setAttribute('aria-checked',String(on)); }
+      sync();
+    }},[
+      el('span',{class:'swatch','aria-hidden':'true'}, LETTERS[i]),
+      el('span',{class:'txt'}, opt.label),
+      el('span',{class:'mark','aria-hidden':'true'},'✓')
+    ]));
+  });
+  wrap.append(fb);
+  const onLast = state.step===TOTAL_STEPS-1;
+  wrap.append(navRow([
+    el('button',{class:'btn', id:'nextBtn', disabled: sel.length===0, onClick:()=>{ if((state.answers[qKey]||[]).length===0) return; if(onLast){ state.screen='result'; render(); } else { state.step++; render(); } }}, onLast?'לקבלת ההמלצה':'הבא')
+  ]));
+  app.append(wrap);
+  focusFirst();
+}
+
+function renderResult(){
+  clear(); topBar();
+  const view = engineView();
+  const seconds = state.startTime? Math.max(1, Math.round((Date.now()-state.startTime)/1000)) : null;
+  const timeStr = seconds==null?'—':(seconds>=60? Math.floor(seconds/60)+' דק׳ '+(seconds%60)+' שנ׳' : seconds+' שניות');
+
+  const wrap = el('div',{class:'stage stage-result'});
+  wrap.append(el('h2',{class:'visually-hidden'},'תוצאות המסלול'));
+
+  wrap.append(el('div',{class:'res-hero'},[
+    el('div',{class:'res-eyebrow'},'הכיוון שמתאים לכם'),
+    el('h1',{class:'res-title'}, view.title),
+    el('div',{class:'res-match'}, view.conf+' · '+view.pct+'% התאמה')
+  ]));
+
+  wrap.append(el('div',{class:'res-grid2'},[
+    el('div',{class:'why'}, view.reason),
+    el('div',{class:'next'},[ el('b',{},'הצעדים הראשונים שלכם'), el('ol',{class:'ressteps'}, (view.steps||[]).map(s=>el('li',{},s))) ])
+  ]));
+
+  const sec = el('div',{class:'res-sec'});
+  sec.append(el('div',{class:'block'},[ el('h3',{},'כיוונים נוספים לשקול'), el('div',{class:'reschips'}, (view.also||[]).filter(Boolean).map(a=>el('span',{class:'reschip'},a))) ]));
+  if(view.insight) sec.append(el('div',{class:'block'},[ el('h3',{},'תובנה אישית'), el('div',{class:'insight'}, view.insight) ]));
+  sec.append(el('div',{class:'block'},[ el('h3',{},'סיכום המסע'), el('div',{class:'stats'},[ stat('זמן ביצוע', timeStr), stat('תחנות שעברתם', String(TOTAL_STEPS+1)) ]) ]));
+  wrap.append(sec);
+
+  wrap.append(navRow([
+    el('button',{class:'btn', onClick:()=>{ resetState(); render(); }},'למסלול חדש'),
+    el('button',{class:'btn secondary', type:'button', onClick:()=>{ state.interestText=''; state.seedField=null; state.detectSource=null; state.answers={}; state.step=0; state.screen='interest'; render(); }},'תחום עניין אחר')
+  ]));
+  app.append(wrap);
+  focusFirst();
+}
+
+function backTarget(){
+  switch(state.screen){
+    case 'interest': return ()=>{ state.screen='intro'; render(); };
+    case 'detect':   return ()=>{ state.screen='interest'; render(); };
+    case 'quiz':     return ()=>{ if(state.step===0){ state.screen='detect'; } else { state.step--; } render(); };
+    case 'result':   return ()=>{ state.screen='quiz'; state.step=TOTAL_STEPS-1; render(); };
+    default:         return null;
+  }
+}
+function updateBackFixed(){
+  const b=document.getElementById('backFixed');
+  if(!b) return;
+  const t=backTarget();
+  if(!t){ b.hidden=true; b.onclick=null; }
+  else { b.hidden=false; b.onclick=t; }
+}
+function render(){
+  switch(state.screen){
+    case 'interest': renderInterest(); break;
+    case 'detect':   renderDetect();   break;
+    case 'quiz':     renderQuiz();     break;
+    case 'result':   renderResult();   break;
+    default:         renderIntro();
+  }
+  updateBackFixed();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+buildTop();
+render();
+</script>
+<script>
+/* רקע Mesh Gradient — מימוש WebGL2 של שיידר paper-shaders, בגוונים בהירים. נופל לרקע CSS אם אין WebGL. */
+(function(){
+  const cv = document.getElementById('shaderbg');
+  if(!cv) return;
+  let gl = null;
+  try { gl = cv.getContext('webgl2', { antialias:false, alpha:true, premultipliedAlpha:true, powerPreference:'low-power' }); } catch(e){}
+  if(!gl){ cv.style.display='none'; return; }
+
+  const VERT = '#version 300 es\n'+
+    'in vec2 a_pos; out vec2 v_uv;\n'+
+    'void main(){ gl_Position = vec4(a_pos,0.,1.); v_uv = a_pos*0.5; }';
+
+  const FRAG = '#version 300 es\n'+
+    'precision highp float;\n'+
+    'uniform float u_time; uniform vec4 u_colors[10]; uniform float u_count; uniform float u_distortion; uniform float u_swirl;\n'+
+    'in vec2 v_uv; out vec4 fragColor;\n'+
+    'mat2 rot(float a){ return mat2(cos(a),-sin(a),sin(a),cos(a)); }\n'+
+    'vec2 rotate(vec2 v,float a){ return rot(a)*v; }\n'+
+    'vec2 getPosition(int i,float t){ float a=float(i)*.37; float b=.6+fract(float(i)/3.)*.9; float c=.8+fract(float(i+1)/4.); return .5 + .5*vec2(sin(t*b+a), cos(t*c+a*1.5)); }\n'+
+    'void main(){\n'+
+    '  vec2 uv = v_uv + .5;\n'+
+    '  float t = .5*(u_time + 41.5);\n'+
+    '  float radius = smoothstep(0.,1.,length(uv-.5));\n'+
+    '  float center = 1.-radius;\n'+
+    '  for(float i=1.;i<=2.;i++){\n'+
+    '    uv.x += u_distortion*center/i*sin(t+i*.4*smoothstep(0.,1.,uv.y))*cos(.2*t+i*2.4*smoothstep(0.,1.,uv.y));\n'+
+    '    uv.y += u_distortion*center/i*cos(t+i*2.*smoothstep(0.,1.,uv.x));\n'+
+    '  }\n'+
+    '  vec2 uvR = uv-.5; uvR = rotate(uvR, -3.*u_swirl*radius); uvR += .5;\n'+
+    '  vec3 color = vec3(0.); float totalW = 0.;\n'+
+    '  for(int i=0;i<10;i++){ if(i>=int(u_count)) break;\n'+
+    '    vec2 pos = getPosition(i,t);\n'+
+    '    float d = pow(length(uvR-pos), 3.5);\n'+
+    '    float w = 1./(d+1e-3);\n'+
+    '    color += u_colors[i].rgb * w; totalW += w;\n'+
+    '  }\n'+
+    '  color /= max(1e-4,totalW);\n'+
+    '  fragColor = vec4(color, 1.0);\n'+
+    '}';
+
+  function sh(type,src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null; }
+  const vs=sh(gl.VERTEX_SHADER,VERT), fs=sh(gl.FRAGMENT_SHADER,FRAG);
+  if(!vs||!fs){ cv.style.display='none'; return; }
+  const prog=gl.createProgram(); gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){ cv.style.display='none'; return; }
+  gl.useProgram(prog);
+
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'a_pos'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+
+  /* פלטה כהה (RGB 0..1) — צבעי שיידר React: שחור · ציאן · טורקיז · נייבי · כתום */
+  const COLORS = [ [0,0,0], [0.024,0.714,0.831], [0.031,0.569,0.698], [0.086,0.306,0.388], [0.976,0.451,0.086] ];
+  const flat = new Float32Array(40);
+  COLORS.forEach((c,i)=>{ flat[i*4]=c[0]; flat[i*4+1]=c[1]; flat[i*4+2]=c[2]; flat[i*4+3]=1; });
+  gl.uniform4fv(gl.getUniformLocation(prog,'u_colors'), flat);
+  gl.uniform1f(gl.getUniformLocation(prog,'u_count'), COLORS.length);
+  gl.uniform1f(gl.getUniformLocation(prog,'u_distortion'), 0.82);
+  gl.uniform1f(gl.getUniformLocation(prog,'u_swirl'), 0.10);
+  const uTime = gl.getUniformLocation(prog,'u_time');
+
+  const dpr = Math.min(window.devicePixelRatio||1, 1.5);
+  function resize(){ const w=Math.max(1,Math.floor(cv.clientWidth*dpr)), h=Math.max(1,Math.floor(cv.clientHeight*dpr));
+    if(cv.width!==w||cv.height!==h){ cv.width=w; cv.height=h; gl.viewport(0,0,w,h); } }
+  window.addEventListener('resize', resize);
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf=0, last=null, clock=0, paused=false;
+  function frame(ts){ if(paused) return; if(last==null) last=ts; clock += (ts-last)*0.001*0.32; last=ts;
+    resize(); gl.uniform1f(uTime, clock); gl.drawArrays(gl.TRIANGLES,0,3); raf=requestAnimationFrame(frame); }
+  resize();
+  if(reduce){ gl.uniform1f(uTime, 8.0); gl.drawArrays(gl.TRIANGLES,0,3); }
+  else { raf=requestAnimationFrame(frame); }
+  document.addEventListener('visibilitychange', function(){ if(reduce) return;
+    if(document.hidden){ paused=true; cancelAnimationFrame(raf); }
+    else { paused=false; last=null; raf=requestAnimationFrame(frame); } });
+})();
+</script>
+</body>
+</html>

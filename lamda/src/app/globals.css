@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    min-height: 100vh;
+    background: #05050b;
+    color: #f7f7ff;
+  }
+
+  ::selection {
+    background: #8f5cff;
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .soft-grid {
+    background-image:
+      linear-gradient(to left, rgb(255 255 255 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8beeff];
+  }
+}
